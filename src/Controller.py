@@ -4,6 +4,7 @@ from pygame import *
 import math
 import random
 from pygame import mixer
+from moviepy.editor import VideoFileClip
 from src import Sprite
 
 class Controller:
@@ -27,7 +28,8 @@ class Controller:
             "Bedroom": "assets/scenes/Bedroom.png",
             "Street": "assets/scenes/Street.png",
             "Campus": "assets/scenes/Campus.png",
-            "Classroom": "assets/scenes/Classroom.png"
+            "Classroom": "assets/scenes/Classroom.png",
+            "Redjug": "assets/scenes/Redjug.png"
         }
         self.char_dict = {
             "Harpur": "assets/chars/Harpur.png",
@@ -58,6 +60,10 @@ class Controller:
         self.objectX = 1000
         self.objectX_change = -10
         self.objectY = 360
+
+        # Score related
+        self.score_value = 'A'
+        self.score_font = pg.font.Font('freesansbold.ttf',32)
 
         self.inputMode = True
         self.next_choice = 'Classroom'
@@ -166,10 +172,14 @@ class Controller:
     def mainMenu(self):
 
         self.screen.fill((24, 103, 48))
+
+        clip = VideoFileClip('assets/sounds/Intro_resized.mp4')
+        clip.preview()
         title = pg.font.Font("freesansbold.ttf", 70)
         TextSurf, TextRect = self.text_objects("THE BINGHAMTON TRAIL", title)
         TextRect.center = ((self.width/2), (self.height/2))
         self.screen.blit(TextSurf, TextRect)
+
         #pg.display.update()
         self.button("PLAY!",250, 550, 100, 50, (255, 255, 0),(204, 204, 0), "PLAY")
         self.button("RULES",750, 550, 100, 50, (51, 135, 255),(0, 102, 204), "INSTRUCTIONS")
@@ -182,6 +192,7 @@ class Controller:
         while self.state == "MENU":
             for event in pg.event.get():
                 if event.type == pg.QUIT:
+                    movie.stop()
                     pg.quit()
                     sys.exit()
                 if event.type == pg.MOUSEBUTTONDOWN:
@@ -261,9 +272,10 @@ class Controller:
                     self.inputMode = False
                     self.choice = ''
                 elif self.choice == '2':
-                    self.next_choice = "Street"
+                    self.next_choice = "Redjug"
                     self.inputMode = False
                     self.choice = ''
+                    self.score_value = 'F'
             else:
 
                 #self.screen.fill((0, 0, 0))
@@ -278,7 +290,7 @@ class Controller:
                     self.backg = pg.image.load(self.scene_dict[self.next_choice]).convert()
                     self.screen.blit(self.player.image, (self.playerX,540))
                     self.screen.blit(self.backg, (0,0))
-                    self.scene = 'STREET'
+                    self.scene = self.next_choice.upper()
                     self.inputMode = True
 
 
@@ -306,6 +318,7 @@ class Controller:
                     self.inputMode = False
                     self.choice = ''
                     self.boundary = 1000
+                    self.score_value = 'B'
             else:
                 self.screen.blit(self.backg, (0,0))
 
@@ -335,7 +348,7 @@ class Controller:
                     self.backg = pg.image.load(self.scene_dict[self.next_choice]).convert()
                     self.screen.blit(self.player.image, (self.playerX,540))
                     self.screen.blit(self.backg, (0,0))
-                    self.scene = 'CAMPUS'
+                    self.scene = self.next_choice.upper()
 
 
                 #self.all_sprites.draw(self.screen)
@@ -353,10 +366,10 @@ class Controller:
             if self.playerX >= 1000:
 
                 self.playerX = 150
-                self.backg = pg.image.load(self.scene_dict["Classroom"]).convert()
+                self.backg = pg.image.load(self.scene_dict[self.next_choice]).convert()
                 self.screen.blit(self.player.image, (self.playerX,540))
                 self.screen.blit(self.backg, (0,0))
-                self.scene = 'CLASSROOM'
+                self.scene = self.next_choice.upper()
 
 
             #self.all_sprites.draw(self.screen)
@@ -368,15 +381,16 @@ class Controller:
         elif self.scene == 'CLASSROOM':
             #self.screen.blit(self.backg, (0,0))
             self.screen.blit(self.backg, (0,0))
-            self.textBox(500, 350, 750, 400, (0, 0, 0), "OPTIONS", "Options:~1. Stay in... *snore*... class...$")
+            self.textBox(500, 350, 750, 400, (0, 0, 0), "OPTIONS", "Options:~1. Stay in... *snore*... class...~2. Give in to temptation")
             self.textBox(500, 550, 750, 80, (0, 0, 0), "INPUT", self.user_text)
-            if self.playerX >= 600:
-
+            #if self.playerX >= 600:
+            if self.choice == '1':
+                self.inputMode = True
                 self.playerX = 150
-                self.backg = pg.image.load(self.scene_dict["Redjug"]).convert()
+                self.backg = pg.image.load(self.scene_dict[self.next_choice]).convert()
                 self.screen.blit(self.player.image, (self.playerX,540))
                 self.screen.blit(self.backg, (0,0))
-                self.scene = 'REDJUG'
+                self.scene = self.next_choice.upper()
 
             else:
                 self.screen.blit(self.player.image, (self.playerX,540))
@@ -392,6 +406,8 @@ class Controller:
             self.screen.blit(self.player.image, (self.playerX,540))
             pg.display.update()
 
+        self.show_score(10, 10, self.score_font, self.score_value)
+
 
             #self.all_sprites.update()
             #pg.display.flip()
@@ -404,6 +420,9 @@ class Controller:
     #playerY = 200 # Adjust for accuracy
     #playerX_change = 0
 
+    def show_score(self,x, y, font, value):
+        score = font.render("Score: " + value, True, (255,255,255))
+        self.screen.blit(score, (x,y))
 
     def end(self):
         pass
