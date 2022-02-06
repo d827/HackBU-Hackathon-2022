@@ -23,24 +23,30 @@ class Controller:
         self.buttons = []
         self.user_text = ''
         self.scene_dict = {
-            "Bedroom": "assets/scenes/Bedroom.png"
+            "Bedroom": "assets/scenes/Bedroom.png",
+            "Street": "assets/scenes/Street.png",
+            "Campus": "assets/scenes/Campus.png",
+            "Classroom": "assets/scenes/Classroom.png"
         }
         self.char_dict = {
             "Harpur": "assets/chars/Harpur.png",
             "SoM": "assets/chars/SoM.png",
             "Watson": "assets/chars/Watson.png",
-            "Don": "assets/chars/donald.png"
+            "Nursing": "assets/chars/Nursing.png",
+            "Don": "assets/chars/donald.png",
+            "Baxter": "assets/chars/Baxter.png"
         }
         self.scene = 'SELECTION'
         self.choice = ''
-        self.playerImg = ''
+        #self.playerImg = pg.image.load('assets/chars/donald.png')
         self.playerX = 50
         self.playerX_change = 0
-        self.playerY = 260
-        self.player = Sprite.Sprite("Player", 150, 850, self.char_dict["Don"])
-        self.all_sprites = pg.sprite.Group()
-        self.all_sprites.add(self.player)
-
+        self.playerY = 150
+        #self.player = Sprite.Sprite("Player", 150, 850, self.char_dict["Don"])
+        self.player = Sprite.Sprite("Player", 150, 850, "assets/chars/donald.png")
+        self.enemy = Sprite.Sprite("Baxter", 150, 850, "assets/chars/Baxter.png")
+        #self.all_sprites = pg.sprite.Group()
+        #self.all_sprites.add(self.player)
 
         # Title and icon
         pg.display.set_caption("The Binghamton Trail")
@@ -53,22 +59,33 @@ class Controller:
 
     def stateChange(self):
         while True:
+            keys = pg.key.get_pressed()
+
+            if keys[pg.K_RIGHT]:
+                self.playerX += 4.5
+            if keys[pg.K_LEFT]:
+                self.playerX -= 4.5
+
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     pg.quit()
                     sys.exit()
 
                 if event.type == pg.KEYDOWN:
+                #
+                #     # if self.scene == 'START':
+                #     # if event.type == pg.KEYUP:
+                #     #     if event.key == pg.K_LEFT or event.key == pg.K_RIGHT:
+                #     #         self.playerX_change = 0
+                #
+                #     if event.type == pg.KEYDOWN:
+                #         if event.key == pg.K_LEFT:
+                #             self.playerX += -2.5
+                #
+                #         if event.key == pg.K_RIGHT:
+                #             self.playerX += 2.5
 
-                    if self.scene == 'START':
-                        if event.key == pg.K_LEFT:
-                            playerX_change = -2.5
-                        elif event.key == pg.K_RIGHT:
-                            playerX_change = 2.5
 
-                        if event.key == pg.KEYUP:
-                            if event.key == pg.K_LEFT or event.key == pg.K_RIGHT:
-                                playerX_change = 0
 
                     if event.key == pg.K_BACKSPACE:
                         self.user_text = self.user_text[:-1]
@@ -85,6 +102,8 @@ class Controller:
                 self.instructions()
             elif self.state == "PLAY":
                 self.play()
+            elif self.state == "END":
+                self.end()
             # elif self.state == "QUIT":
             #     self.quit()
             pg.display.update()
@@ -188,8 +207,10 @@ class Controller:
             pg.display.update()
 
     def play(self):
-        self.bg = pg.image.load(self.scene_dict["Bedroom"]).convert()
-
+        self.backg = pg.image.load(self.scene_dict["Bedroom"]).convert()
+        #self.all_sprites.update()
+        if self.playerX <= 0:
+            self.playerX = 0
         if self.scene == 'SELECTION':
             self.screen.fill((24, 103, 48))
             self.textBox(500, 350, 750, 400, (0, 0, 0), "OPTIONS", "Who are you? Who you decide will change~your stats.~1. Harpur~2. Watson~3. SOM")
@@ -206,16 +227,64 @@ class Controller:
                 self.scene = 'START'
                 self.player.updateImg(self.char_dict["SoM"])
                 self.choice = ''
+            elif self.choice == '4':
+                self.scene = 'START'
+                self.player.updateImg(self.char_dict["Nursing"])
         elif self.scene == 'START':
             #self.screen.fill((0, 0, 0))
-            self.screen.blit(self.bg, (0,0))
+            self.screen.blit(self.backg, (0,0))
             #self.screen.blit(self.playerImg, (self.playerX+self.playerX_change,self.playerY))
             #self.textBox(500, 350, 750, 400, (0, 0, 0), "OPTIONS", "1. Harpur~2. Watson~3. SOM")
             #self.textBox(500, 550, 750, 80, (0, 0, 0), "INPUT", self.user_text)
+            print(self.playerX)
+            if self.playerX >= 600:
+                self.scene = 'STREET'
+                self.playerX = 150
+                self.bg = pg.image.load(self.scene_dict["Street"].convert())
+
+            #self.playerX += self.playerX_change
+            #print(self.player.image)
+            #print(self.all_sprites.sprites())
+            #self.all_sprites.draw(self.screen)
+            self.screen.blit(self.player.image, (self.playerX,540))
+            pg.display.update()
+        elif self.scene == 'STREET':
+            self.screen.blit(self.backg, (0,0))
 
 
-            self.all_sprites.draw(self.screen)
-            pg.display.flip()
+            if self.playerX >= 600:
+                self.scene = 'CLASSROOM'
+                self.playerX = 150
+                self.bg = pg.image.load(self.scene_dict["Classroom"].convert())
+
+            #self.all_sprites.draw(self.screen)
+            self.screen.blit(self.player.image, (self.playerX,540))
+            pg.display.update()
+
+        elif self.scene == 'CLASSROOM':
+            self.screen.blit(self.backg)
+
+            if self.playerX >= 600:
+                self.scene = 'REDJUG'
+                self.playerX = 150
+                self.bg = pg.image.load(self.scene_dict["Redjug"].convert())
+
+            self.screen.blit(self.player.image, (self.playerX,540))
+            pg.display.update()
+
+        elif self.scene == 'REDJUG':
+
+            self.screen.blit(self.backg)
+
+            if self.playerX >= 600:
+                self.state = 'END'
+
+            self.screen.blit(self.player.image, (self.playerX,540))
+            pg.display.update()
+
+
+            #self.all_sprites.update()
+            #pg.display.flip()
             # if choice == '1':
             #     self.state = "MENU"
 
@@ -226,6 +295,8 @@ class Controller:
     #playerX_change = 0
 
 
+    def end(self):
+        pass
 
     def isCollision(boundaryX,boundaryY,playerX,playerY):
         distance = math.sqrt( (math.pow(boundaryX-playerX,2)) + (math.pow(boundaryY-playerY,2)) )
