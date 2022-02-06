@@ -43,11 +43,15 @@ class Controller:
             "Bus": "assets/chars/Bus.png",
             "Garf": "assets/chars/Garf.png"
         }
+
+        # Menu music
+        mixer.music.load("assets/sounds/Theme.mp3")
+
+
         self.scene = 'SELECTION'
         self.choice = ''
         self.sprite_group = pg.sprite.Group()
 
-        #self.playerImg = pg.image.load('assets/chars/donald.png')
         # PLAYER PARAM
         self.playerX = 50
         self.playerX_change = 0
@@ -66,19 +70,19 @@ class Controller:
         self.objectY = 360
 
         # Score related
-        self.score_value = 'A'
+        self.letter = 4
+        self.grade_list = ["F","D","C","B","A"]
+        self.score_value = self.grade_list[self.letter]
         self.score_font = pg.font.Font('freesansbold.ttf',32)
+
+
 
         self.inputMode = True
         self.next_choice = 'Classroom'
         self.boundary = 600
-        #self.all_sprites = pg.sprite.Group()
-        #self.all_sprites.add(self.player)
 
         # Title and icon
         pg.display.set_caption("The Binghamton Trail")
-        # icon = pg.image.load('')
-        # pg.display.set_icon(icon)
 
         pg.font.init()
         self.state = "MENU"
@@ -86,17 +90,21 @@ class Controller:
 
     def stateChange(self):
         clock = pg.time.Clock()
-        # video_sprite = VideoSprite.VideoSprite(pg.Rect(0,0, 1000, 800), 'assets/sounds/Intro_resized.mp4')
-        # self.sprite_group.add(video_sprite)
-
+        mixer.music.play(-1)
         while True:
 
             keys = pg.key.get_pressed()
 
             if keys[pg.K_RIGHT]:
-                self.playerX += 4.5
+                if self.scene == 'PRESERVE':
+                    self.playerX += 12
+                else:
+                    self.playerX += 4.5
             if keys[pg.K_LEFT]:
-                self.playerX -= 4.5
+                if self.scene == 'PRESERVE':
+                    self.playerX -= 12
+                else:
+                    self.playerX -= 4.5
 
             for event in pg.event.get():
                 if event.type == pg.QUIT:
@@ -117,29 +125,18 @@ class Controller:
 
             if self.state == "MENU":
 
-                #clip = VideoFileClip('assets/sounds/Intro_resized.mp4')
-                #clip.preview()
-
                 self.mainMenu()
             elif self.state == "INSTRUCTIONS":
                 self.instructions()
             elif self.state == "PLAY":
                 self.play()
-            elif self.state == "END":
-                self.end()
-            # elif self.state == "QUIT":
-            #     self.quit()
+            elif self.state == "GAMEOVER":
+                self.gameover()
+            elif self.state == "WIN":
+                self.win()
+
             pg.display.update()
             clock.tick(60)
-            #clock.tick_busy_loop(25)
-
-
-
-    # def quit(self):
-    #     for event in pg.event.get():
-    #         if event.type == pg.QUIT:
-    #             pg.display.quit()
-    #             sys.exit()
 
     def text_objects(self, text, font):
         textSurface = font.render(text, True, (255,255,255))
@@ -154,14 +151,12 @@ class Controller:
         self.screen.blit(input_rect, rec)
         user_font = pg.font.Font("freesansbold.ttf",32)
         #Center
-        #TextRect.center = (x, y)
         if mode == "INPUT":
             y_change = -20
         elif mode == "OPTIONS":
             y_change = -175
 
         for text in option_text:
-            #TextRect.x = x-145
             TextSurf, TextRect = self.text_objects(text, user_font)
             TextRect.x = x-365
             TextRect.y = y + y_change #change this value to raise text in box
@@ -186,25 +181,16 @@ class Controller:
 
         self.screen.fill((24, 103, 48))
 
-        # self.sprite_group.update()
-        # self.sprite_group.draw(self.bg)
-        # pg.display.flip()
+        self.backg = pg.image.load('assets/scenes/bing.jpg').convert()
+        self.screen.blit(self.backg, (0,0))
 
-        clip = VideoFileClip('assets/sounds/Intro_resized.mp4')
-        clip.preview()
         title = pg.font.Font("freesansbold.ttf", 70)
         TextSurf, TextRect = self.text_objects("THE BINGHAMTON TRAIL", title)
         TextRect.center = ((self.width/2), (self.height/2))
         self.screen.blit(TextSurf, TextRect)
 
-        #pg.display.update()
         self.button("PLAY!",250, 550, 100, 50, (24, 103, 48),(204, 204, 0), "PLAY")
         self.button("RULES",750, 550, 100, 50, (24, 103, 48),(0, 102, 204), "INSTRUCTIONS")
-
-        # while.self.state == "MENU":
-        #     for event in pg.event.get():
-        #         if event.type == pg.MOUSEBUTTONDOWN:
-        #
 
 
         while self.state == "MENU":
@@ -221,14 +207,13 @@ class Controller:
                             self.buttons = []
 
 
-            #self.clock.tick_busy_loop(25)
             pg.display.update()
 
     # Title and icon
 
     def instructions(self):
         self.screen.fill((24, 103, 48))
-        self.textBox(500, 350, 850, 400, (0, 0, 0), "OPTIONS", "Rules:~1. Each scene will have options~2. Choose an option by typing in option number~3. Each option affects your letter grade~4. You can move your character~with the right and left arrow keys~after choosing an option")
+        self.textBox(500, 350, 850, 400, (0, 0, 0), "OPTIONS", "Rules:~1. Each scene will have options~2. Choose an option by typing in option number~3. Each option affects your letter grade~4. You can move your character with the right~and left arrow keys~after choosing an option")
         self.button("PLAY!",250, 700, 100, 50, (255, 255, 0),(204, 204, 0), "PLAY")
         self.button("MENU",750, 700, 100, 50, (51, 135, 255),(0, 102, 204), "MENU")
 
@@ -298,15 +283,10 @@ class Controller:
                     self.next_choice = "Redjug"
                     self.inputMode = False
                     self.choice = ''
-                    self.score_value = 'F'
             else:
 
-                #self.screen.fill((0, 0, 0))
-                #self.screen.blit(self.backg, (0,0))
-                #self.screen.blit(self.playerImg, (self.playerX+self.playerX_change,self.playerY))
-                #self.textBox(500, 350, 750, 400, (0, 0, 0), "OPTIONS", "1. Harpur~2. Watson~3. SOM")
-                #self.textBox(500, 550, 750, 80, (0, 0, 0), "INPUT", self.user_text)
                 self.screen.blit(self.backg, (0,0))
+                self.screen.blit(pg.image.load('assets/chars/Garf.png'), (550,525))
                 if self.playerX >= 350:
 
                     self.playerX = 150
@@ -317,10 +297,6 @@ class Controller:
                     self.inputMode = True
 
 
-                #self.playerX += self.playerX_change
-                #print(self.player.image)
-                #print(self.all_sprites.sprites())
-                #self.all_sprites.draw(self.screen)
                 else:
 
                     self.screen.blit(self.player.image, (self.playerX,540))
@@ -371,6 +347,7 @@ class Controller:
                     self.backg = pg.image.load(self.scene_dict[self.next_choice]).convert()
                     self.screen.blit(self.player.image, (self.playerX,540))
                     self.screen.blit(self.backg, (0,0))
+                    self.inputMode = True
                     self.scene = self.next_choice.upper()
 
 
@@ -383,78 +360,251 @@ class Controller:
 
         elif self.scene == 'CAMPUS':
             # self.screen.blit(self.backg, (0,0))
-
-            self.screen.blit(self.backg, (0,0))
-
-            if self.playerX >= 1000:
-
-                self.playerX = 150
-                self.backg = pg.image.load(self.scene_dict[self.next_choice]).convert()
-                self.screen.blit(self.player.image, (self.playerX,540))
-                self.screen.blit(self.backg, (0,0))
-                self.scene = self.next_choice.upper()
-
-
-            #self.all_sprites.draw(self.screen)
+            if self.inputMode:
+                self.textBox(500, 350, 750, 400, (0, 0, 0), "OPTIONS", "Options:~1. Travel to class~2. Take a walk")
+                self.textBox(500, 550, 750, 80, (0, 0, 0), "INPUT", self.user_text)
+                if self.choice == '1':
+                    self.next_choice = "Classroom"
+                    self.inputMode = False
+                    self.choice = ''
+                    self.boundary = 1000
+                elif self.choice == '2':
+                    self.next_choice = "Preserve"
+                    self.inputMode = False
+                    self.choice = ''
+                    self.boundary = 1000
+                    self.score_value = 'B'
             else:
-                #self.screen.blit(self.backg, (0,0))
-                self.screen.blit(self.player.image, (self.playerX,540))
-                pg.display.update()
+                self.screen.blit(self.backg, (0,0))
+
+                if self.playerX >= self.boundary:
+
+                    self.playerX = -20
+                    self.backg = pg.image.load(self.scene_dict[self.next_choice]).convert()
+                    self.screen.blit(self.player.image, (self.playerX,540))
+                    self.screen.blit(self.backg, (0,0))
+                    self.scene = self.next_choice.upper()
+                    self.inputMode = True
+
+
+                #self.all_sprites.draw(self.screen)
+                else:
+                    #self.screen.blit(self.backg, (0,0))
+                    self.screen.blit(self.player.image, (self.playerX,540))
+                    pg.display.update()
+
+        elif self.scene == 'PRESERVE':
+            # self.screen.blit(self.backg, (0,0))
+            if self.inputMode:
+                self.textBox(500, 350, 750, 400, (0, 0, 0), "OPTIONS", "Options:~1. Walk around~2. Go to class")
+                self.textBox(500, 550, 750, 80, (0, 0, 0), "INPUT", self.user_text)
+                if self.choice == '1':
+                    #self.next_choice = "Gameover"
+                    self.inputMode = False
+                    self.choice = ''
+                    self.boundary = 1050
+                elif self.choice == '2':
+                    #self.next_choice = "Gameover"
+                    self.inputMode = False
+                    self.choice = ''
+                    self.boundary = 1050
+
+            else:
+                self.screen.blit(self.backg, (0,0))
+                if self.inputMode:
+                    self.textBox(500, 350, 750, 400, (0, 0, 0), "OPTIONS", "Options:~1. Walk around the preserve~2. Go to class")
+                    self.textBox(500, 550, 750, 80, (0, 0, 0), "INPUT", self.user_text)
+                    if self.choice == '1':
+                        #self.next_choice = "Gameover"
+                        self.inputMode = False
+                        self.choice = ''
+                        self.boundary = 1050
+                    elif self.choice == '2':
+                        #self.next_choice = "Gameover"
+                        self.inputMode = False
+                        self.choice = ''
+                        self.boundary = 1050
+
+                # self.enemyX = self.playerX - 50 + .5
+
+                if self.playerX >= 300:
+                    self.enemyX += self.enemyX_change
+                    self.screen.blit(pg.transform.flip(self.enemy.image,True,False), (self.enemyX,540))
+                    self.enemyX_change += 1*self.enemyX_change/6
+                else:
+                    self.enemyX = -50
+
+
+                if self.playerX >= self.boundary or self.playerX <= self.enemyX:
+
+                    self.playerX = 150
+                    # self.backg = pg.image.load(self.scene_dict[self.next_choice]).convert()
+                    self.screen.blit(self.player.image, (self.playerX,540))
+                    self.screen.blit(self.backg, (0,0))
+                    self.scene = self.next_choice.upper()
+                    self.state = 'GAMEOVER'
+
+
+                #self.all_sprites.draw(self.screen)
+                else:
+                    #self.screen.blit(self.backg, (0,0))
+                    self.screen.blit(self.player.image, (self.playerX,540))
+                    pg.display.update()
 
         elif self.scene == 'CLASSROOM':
             #self.screen.blit(self.backg, (0,0))
-            self.screen.blit(self.backg, (0,0))
-            self.textBox(500, 350, 750, 400, (0, 0, 0), "OPTIONS", "Options:~1. Stay in... *snore*... class...~2. Give in to temptation")
-            self.textBox(500, 550, 750, 80, (0, 0, 0), "INPUT", self.user_text)
-            #if self.playerX >= 600:
-            if self.choice == '1':
-                self.inputMode = True
-                self.playerX = 150
-                self.backg = pg.image.load(self.scene_dict[self.next_choice]).convert()
-                self.screen.blit(self.player.image, (self.playerX,540))
-                self.screen.blit(self.backg, (0,0))
-                self.scene = self.next_choice.upper()
-
+            if self.inputMode:
+                if self.inputMode:
+                    self.textBox(500, 350, 750, 400, (0, 0, 0), "OPTIONS", "Options:~1. Stay in... *snore*... class...~2. Give in to temptation")
+                    self.textBox(500, 550, 750, 80, (0, 0, 0), "INPUT", self.user_text)
+                    if self.choice == '1':
+                        self.next_choice = "Gameover"
+                        self.inputMode = False
+                        self.choice = ''
+                        self.boundary = 300
+                    elif self.choice == '2':
+                        self.next_choice = "Redjug"
+                        self.inputMode = False
+                        self.choice = ''
+                        self.boundary = 300
             else:
-                self.screen.blit(self.player.image, (self.playerX,540))
-                pg.display.update()
+                self.screen.blit(self.backg, (0,0))
+
+                #if self.playerX >= 600:
+                if self.playerX >= self.boundary:
+                    self.inputMode = True
+                    self.playerX = 150
+
+                    self.screen.blit(self.player.image, (self.playerX,540))
+                    self.screen.blit(self.backg, (0,0))
+                    if self.next_choice == "Gameover":
+                        if self.letter >= 2:
+                            self.state = "WIN"
+                        else:
+                            self.state = "GAMEOVER"
+                    else:
+                        self.backg = pg.image.load(self.scene_dict[self.next_choice]).convert()
+                        self.scene = self.next_choice.upper()
+
+                else:
+                    self.screen.blit(self.player.image, (self.playerX,540))
+                    pg.display.update()
 
         elif self.scene == 'REDJUG':
+            if self.inputMode:
+                self.screen.blit(self.backg, (0,0))
+                self.textBox(500, 350, 750, 400, (0, 0, 0), "OPTIONS", "Options:~1. Have a drink~2. Try and get to class")
+                self.textBox(500, 550, 750, 80, (0, 0, 0), "INPUT", self.user_text)
+                if self.choice == '1':
+                    self.next_choice = "Redjug"
+                    if self.score_value == 'F':
+                        self.inputMode = False
+                    else:
+                        self.letter -= 1
+                        if self.letter <= 0:
+                            self.letter = 0
+                        elif self.letter >= 4:
+                            self.letter = 4
+                        self.playerX = 50
+                        self.inputMode = True
+                        self.score_value = self.grade_list[self.letter]
+                    self.choice = ''
+                    self.boundary = 1050
 
-            self.screen.blit(self.backg, (0,0))
+                    self.score_value = self.grade_list[self.letter]
+                elif self.choice == '2':
+                    self.letter -= 1
+                    if self.letter <= 0:
+                        self.letter = 0
+                    elif self.letter >= 4:
+                        self.letter = 4
+                    self.score_value = self.grade_list[self.letter]
+                    self.playerX = 50
+                    self.next_choice = "Classroom"
+                    self.inputMode = False
+                    self.choice = ''
+                    self.boundary = 1050
 
-            if self.playerX >= 600:
-                self.state = 'END'
 
-            self.screen.blit(self.player.image, (self.playerX,540))
-            pg.display.update()
+
+            else:
+                self.screen.blit(self.backg, (0,0))
+                if self.score_value == 'F':
+                    pass
+
+
+                if self.playerX >= 600:
+                    self.state = 'GAMEOVER'
+                else:
+
+                    self.screen.blit(self.player.image, (self.playerX,540))
+                pg.display.update()
 
         self.show_score(10, 10, self.score_font, self.score_value)
 
-
-            #self.all_sprites.update()
-            #pg.display.flip()
-            # if choice == '1':
-            #     self.state = "MENU"
-
-    # Player Image and variables
-    #playerImg = pg.image.load()
-    #playerX = 200
-    #playerY = 200 # Adjust for accuracy
-    #playerX_change = 0
 
     def show_score(self,x, y, font, value):
         score = font.render("Score: " + value, True, (255,255,255))
         self.screen.blit(score, (x,y))
 
-    def end(self):
-        pass
+    def gameover(self):
+        self.screen.fill((201, 32, 32))
+        pg.time.wait(800)
+        self.screen.fill((0, 0, 0))
 
-    def isCollision(boundaryX,boundaryY,playerX,playerY):
-        distance = math.sqrt( (math.pow(boundaryX-playerX,2)) + (math.pow(boundaryY-playerY,2)) )
-        if distance < 32:
-            return True
-        return False
+        self.backg = pg.image.load('assets/chars/baxterEnd.png').convert()
+        self.screen.blit(self.backg, (0,0))
+        self.roar()
 
-    def controls(self):
-        pass
+        gameOverText = pg.font.Font("freesansbold.ttf", 70)
+        TextSurf, TextRect = self.text_objects("GAME OVER, GO TO CLASS!", gameOverText)
+        TextRect.center = ((self.width/2), (self.height/2))
+        self.screen.blit(TextSurf, TextRect)
+
+        while self.state == "GAMEOVER":
+
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    #movie.stop()
+                    pg.quit()
+                    sys.exit()
+                if event.type == pg.MOUSEBUTTONDOWN:
+                    for b in self.buttons:
+                        if b[0].collidepoint(event.pos):
+                            self.state = b[1]
+                            self.buttons = []
+
+            pg.display.update()
+
+        # self.screen.blit()
+
+    def roar(self):
+        roar_Sound = mixer.Sound('assets/sounds/Roar.mp3')
+        roar_Sound.play()
+        mixer.music.stop()
+
+    def win(self):
+        self.backg = pg.image.load('assets/chars/Stenger.jpg').convert()
+        self.screen.blit(self.backg, (0,0))
+
+        winText = pg.font.Font("freesansbold.ttf", 80)
+        TextSurf, TextRect = self.text_objects("YOU WIN!!!", winText)
+        TextRect.center = ((self.width/2), (self.height/2))
+        self.screen.blit(TextSurf, TextRect)
+
+        while self.state == "WIN":
+
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    #movie.stop()
+                    pg.quit()
+                    sys.exit()
+                if event.type == pg.MOUSEBUTTONDOWN:
+                    for b in self.buttons:
+                        if b[0].collidepoint(event.pos):
+                            self.state = b[1]
+                            self.buttons = []
+
+
+            #self.clock.tick_busy_loop(25)
+            pg.display.update()
