@@ -6,6 +6,7 @@ import random
 from pygame import mixer
 from moviepy.editor import VideoFileClip
 from src import Sprite
+from src import VideoSprite
 
 class Controller:
 
@@ -29,7 +30,8 @@ class Controller:
             "Street": "assets/scenes/Street.png",
             "Campus": "assets/scenes/Campus.png",
             "Classroom": "assets/scenes/Classroom.png",
-            "Redjug": "assets/scenes/Redjug.png"
+            "Redjug": "assets/scenes/Redjug.png",
+            "Preserve": "assets/scenes/Preserve.png"
         }
         self.char_dict = {
             "Harpur": "assets/chars/Harpur.png",
@@ -43,6 +45,8 @@ class Controller:
         }
         self.scene = 'SELECTION'
         self.choice = ''
+        self.sprite_group = pg.sprite.Group()
+
         #self.playerImg = pg.image.load('assets/chars/donald.png')
         # PLAYER PARAM
         self.playerX = 50
@@ -82,7 +86,11 @@ class Controller:
 
     def stateChange(self):
         clock = pg.time.Clock()
+        # video_sprite = VideoSprite.VideoSprite(pg.Rect(0,0, 1000, 800), 'assets/sounds/Intro_resized.mp4')
+        # self.sprite_group.add(video_sprite)
+
         while True:
+
             keys = pg.key.get_pressed()
 
             if keys[pg.K_RIGHT]:
@@ -108,6 +116,10 @@ class Controller:
                         self.user_text += event.unicode
 
             if self.state == "MENU":
+
+                #clip = VideoFileClip('assets/sounds/Intro_resized.mp4')
+                #clip.preview()
+
                 self.mainMenu()
             elif self.state == "INSTRUCTIONS":
                 self.instructions()
@@ -119,6 +131,7 @@ class Controller:
             #     self.quit()
             pg.display.update()
             clock.tick(60)
+            #clock.tick_busy_loop(25)
 
 
 
@@ -173,6 +186,10 @@ class Controller:
 
         self.screen.fill((24, 103, 48))
 
+        # self.sprite_group.update()
+        # self.sprite_group.draw(self.bg)
+        # pg.display.flip()
+
         clip = VideoFileClip('assets/sounds/Intro_resized.mp4')
         clip.preview()
         title = pg.font.Font("freesansbold.ttf", 70)
@@ -181,18 +198,20 @@ class Controller:
         self.screen.blit(TextSurf, TextRect)
 
         #pg.display.update()
-        self.button("PLAY!",250, 550, 100, 50, (255, 255, 0),(204, 204, 0), "PLAY")
-        self.button("RULES",750, 550, 100, 50, (51, 135, 255),(0, 102, 204), "INSTRUCTIONS")
+        self.button("PLAY!",250, 550, 100, 50, (24, 103, 48),(204, 204, 0), "PLAY")
+        self.button("RULES",750, 550, 100, 50, (24, 103, 48),(0, 102, 204), "INSTRUCTIONS")
 
         # while.self.state == "MENU":
         #     for event in pg.event.get():
         #         if event.type == pg.MOUSEBUTTONDOWN:
         #
 
+
         while self.state == "MENU":
+
             for event in pg.event.get():
                 if event.type == pg.QUIT:
-                    movie.stop()
+                    #movie.stop()
                     pg.quit()
                     sys.exit()
                 if event.type == pg.MOUSEBUTTONDOWN:
@@ -201,12 +220,15 @@ class Controller:
                             self.state = b[1]
                             self.buttons = []
 
+
+            #self.clock.tick_busy_loop(25)
             pg.display.update()
+
     # Title and icon
 
     def instructions(self):
         self.screen.fill((24, 103, 48))
-        self.textBox(500, 350, 850, 400, (0, 0, 0), "OPTIONS", "Rules:~1. Each Scene will have an option~2. Choose an option by typing in option number~3. Each option affects your arrival to class~4. You can move your character~with the right and left arrow keys~after choosing an option")
+        self.textBox(500, 350, 850, 400, (0, 0, 0), "OPTIONS", "Rules:~1. Each scene will have options~2. Choose an option by typing in option number~3. Each option affects your letter grade~4. You can move your character~with the right and left arrow keys~after choosing an option")
         self.button("PLAY!",250, 700, 100, 50, (255, 255, 0),(204, 204, 0), "PLAY")
         self.button("MENU",750, 700, 100, 50, (51, 135, 255),(0, 102, 204), "MENU")
 
@@ -247,8 +269,9 @@ class Controller:
                 self.player.updateImg(self.char_dict["SoM"])
                 self.choice = ''
             elif self.choice == '4':
-                self.scene = 'SELECTION'
+                self.scene = 'SELECTION2'
                 self.player.updateImg(self.char_dict["Nursing"])
+                self.choice = ''
 
 
         elif self.scene == 'SELECTION2':
