@@ -4,6 +4,7 @@ from pygame import *
 import math
 import random
 from pygame import mixer
+from src import Sprite
 
 class Controller:
 
@@ -27,13 +28,22 @@ class Controller:
         self.char_dict = {
             "Harpur": "assets/chars/Harpur.png",
             "SoM": "assets/chars/SoM.png",
-            "Watson": "assets/chars/Watson.png"
+            "Watson": "assets/chars/Watson.png",
+            "Don": "assets/chars/donald.png"
         }
         self.scene = 'SELECTION'
         self.choice = ''
+        self.playerImg = ''
+        self.playerX = 50
+        self.playerX_change = 0
+        self.playerY = 260
+        self.player = Sprite.Sprite("Player", 150, 850, self.char_dict["Don"])
+        self.all_sprites = pg.sprite.Group()
+        self.all_sprites.add(self.player)
+
 
         # Title and icon
-        pg.display.set_caption("Binghamton Trail")
+        pg.display.set_caption("The Binghamton Trail")
         # icon = pg.image.load('')
         # pg.display.set_icon(icon)
 
@@ -45,9 +55,21 @@ class Controller:
         while True:
             for event in pg.event.get():
                 if event.type == pg.QUIT:
+                    pg.quit()
                     sys.exit()
 
                 if event.type == pg.KEYDOWN:
+
+                    if self.scene == 'START':
+                        if event.key == pg.K_LEFT:
+                            playerX_change = -2.5
+                        elif event.key == pg.K_RIGHT:
+                            playerX_change = 2.5
+
+                        if event.key == pg.KEYUP:
+                            if event.key == pg.K_LEFT or event.key == pg.K_RIGHT:
+                                playerX_change = 0
+
                     if event.key == pg.K_BACKSPACE:
                         self.user_text = self.user_text[:-1]
                     elif event.key == pg.K_RETURN and self.user_text == "MENU":
@@ -76,7 +98,7 @@ class Controller:
     #             sys.exit()
 
     def text_objects(self, text, font):
-        textSurface = font.render(text, True, (0,0,0))
+        textSurface = font.render(text, True, (255,255,255))
         return textSurface, textSurface.get_rect()
 
     def textBox(self, x, y, w, h, col1, mode, user_text):
@@ -134,6 +156,9 @@ class Controller:
 
         while self.state == "MENU":
             for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    pg.quit()
+                    sys.exit()
                 if event.type == pg.MOUSEBUTTONDOWN:
                     for b in self.buttons:
                         if b[0].collidepoint(event.pos):
@@ -144,14 +169,53 @@ class Controller:
     # Title and icon
 
     def instructions(self):
-        pass
+        self.screen.fill((24, 103, 48))
+        self.textBox(500, 350, 850, 400, (0, 0, 0), "OPTIONS", "Rules:~1. Each Scene will have an option~2. Choose an option by typing in option number~3. Each option affects your arrival to class~4. You can move your character~with the right and left arrow keys~after choosing an option")
+        self.button("PLAY!",250, 700, 100, 50, (255, 255, 0),(204, 204, 0), "PLAY")
+        self.button("MENU",750, 700, 100, 50, (51, 135, 255),(0, 102, 204), "MENU")
+
+        while self.state == "INSTRUCTIONS":
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    pg.quit()
+                    sys.exit()
+                if event.type == pg.MOUSEBUTTONDOWN:
+                    for b in self.buttons:
+                        if b[0].collidepoint(event.pos):
+                            self.state = b[1]
+                            self.buttons = []
+
+            pg.display.update()
 
     def play(self):
+        self.bg = pg.image.load(self.scene_dict["Bedroom"]).convert()
 
         if self.scene == 'SELECTION':
-            self.screen.fill((100, 0, 0))
-            self.textBox(500, 350, 750, 400, (79, 98, 184), "OPTIONS", "1. Kill Joe~2. Kill Joe~3. Fucking Kill Joe")
-            self.textBox(500, 550, 750, 80, (0, 50, 50), "INPUT", self.user_text)
+            self.screen.fill((24, 103, 48))
+            self.textBox(500, 350, 750, 400, (0, 0, 0), "OPTIONS", "Who are you? Who you decide will change~your stats.~1. Harpur~2. Watson~3. SOM")
+            self.textBox(500, 550, 750, 80, (0, 0, 0), "INPUT", self.user_text)
+            if self.choice == '1':
+                self.scene = 'START'
+                self.player.updateImg(self.char_dict["Harpur"])
+                self.choice = ''
+            elif self.choice == '2':
+                self.scene = 'START'
+                self.player.updateImg(self.char_dict["Watson"])
+                self.choice = ''
+            elif self.choice == '3':
+                self.scene = 'START'
+                self.player.updateImg(self.char_dict["SoM"])
+                self.choice = ''
+        elif self.scene == 'START':
+            #self.screen.fill((0, 0, 0))
+            self.screen.blit(self.bg, (0,0))
+            #self.screen.blit(self.playerImg, (self.playerX+self.playerX_change,self.playerY))
+            #self.textBox(500, 350, 750, 400, (0, 0, 0), "OPTIONS", "1. Harpur~2. Watson~3. SOM")
+            #self.textBox(500, 550, 750, 80, (0, 0, 0), "INPUT", self.user_text)
+
+
+            self.all_sprites.draw(self.screen)
+            pg.display.flip()
             # if choice == '1':
             #     self.state = "MENU"
 
@@ -162,8 +226,6 @@ class Controller:
     #playerX_change = 0
 
 
-    def player(x,y):
-        screen.blit(playerImg, (x,y))
 
     def isCollision(boundaryX,boundaryY,playerX,playerY):
         distance = math.sqrt( (math.pow(boundaryX-playerX,2)) + (math.pow(boundaryY-playerY,2)) )
