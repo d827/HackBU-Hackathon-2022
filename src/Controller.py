@@ -21,8 +21,21 @@ class Controller:
         self.clock = (pg.time.Clock())
         self.buttons = []
         self.user_text = ''
-        self.scene_dict = {}
+        self.scene_dict = {
+            "Bedroom": "assets/scenes/Bedroom.png"
+        }
+        self.char_dict = {
+            "Harpur": "assets/chars/Harpur.png",
+            "SoM": "assets/chars/SoM.png",
+            "Watson": "assets/chars/Watson.png"
+        }
+        self.scene = 'SELECTION'
+        self.choice = ''
 
+        # Title and icon
+        pg.display.set_caption("Binghamton Trail")
+        # icon = pg.image.load('')
+        # pg.display.set_icon(icon)
 
         pg.font.init()
         self.state = "MENU"
@@ -39,6 +52,8 @@ class Controller:
                         self.user_text = self.user_text[:-1]
                     elif event.key == pg.K_RETURN and self.user_text == "MENU":
                         self.state = "MENU"
+                    elif event.key == pg.K_RETURN:
+                        self.choice = self.user_text
                     else:
                         self.user_text += event.unicode
 
@@ -64,19 +79,28 @@ class Controller:
         textSurface = font.render(text, True, (0,0,0))
         return textSurface, textSurface.get_rect()
 
-    def textBox(self, x, y, w, h, col1, col2, user_text):
+    def textBox(self, x, y, w, h, col1, mode, user_text):
+        option_text = user_text.split("~")
         input_rect = Surface((w,h))
         input_rect.fill(col1)
         rec = input_rect.get_rect()
         rec.center = (x, y)
         self.screen.blit(input_rect, rec)
         user_font = pg.font.Font("freesansbold.ttf",32)
-        TextSurf, TextRect = self.text_objects(user_text, user_font)
         #Center
         #TextRect.center = (x, y)
-        TextRect.x = x-145
-        TextRect.y = y #change this value to raise text in box
-        self.screen.blit(TextSurf, (TextRect.x+5, TextRect.y+5))
+        if mode == "INPUT":
+            y_change = -20
+        elif mode == "OPTIONS":
+            y_change = -175
+
+        for text in option_text:
+            #TextRect.x = x-145
+            TextSurf, TextRect = self.text_objects(text, user_font)
+            TextRect.x = x-365
+            TextRect.y = y + y_change #change this value to raise text in box
+            self.screen.blit(TextSurf, (TextRect.x+5, TextRect.y+5))
+            y_change += 50
 
 
     def button(self, msg, x, y, w, h, col, col2, state=None):
@@ -123,9 +147,13 @@ class Controller:
         pass
 
     def play(self):
-        self.screen.fill((100, 0, 0))
-        self.textBox(500, 175, 300, 80, (79, 98, 184), (0, 20, 20), "Bruh")
-        self.textBox(500, 255, 300, 80, (0, 50, 50), (0, 20, 20), self.user_text)
+
+        if self.scene == 'SELECTION':
+            self.screen.fill((100, 0, 0))
+            self.textBox(500, 350, 750, 400, (79, 98, 184), "OPTIONS", "1. Kill Joe~2. Kill Joe~3. Fucking Kill Joe")
+            self.textBox(500, 550, 750, 80, (0, 50, 50), "INPUT", self.user_text)
+            # if choice == '1':
+            #     self.state = "MENU"
 
     # Player Image and variables
     #playerImg = pg.image.load()
@@ -143,6 +171,5 @@ class Controller:
             return True
         return False
 
-    def con(self):
-
-            pg.display.update()
+    def controls(self):
+        pass
